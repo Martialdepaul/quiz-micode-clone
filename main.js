@@ -5,7 +5,6 @@ import { Questions } from "./questions";
 const TIMEOUT = 4000;
 
 const app = document.querySelector("#app");
-
 const startButton = document.querySelector("#start");
 
 startButton.addEventListener("click", startQuiz);
@@ -39,30 +38,35 @@ function startQuiz(event) {
     const answersDiv = createAnswers(question.answers);
     app.appendChild(answersDiv);
 
-    const submiteButton = getSubmitButton();
-
-    submiteButton.addEventListener("click", submit);
-    app.appendChild(submiteButton);
+    const submitButton = getSubmitButton();
+    submitButton.addEventListener("click", submit);
+    app.appendChild(submitButton);
   }
 
   function displayFinishMessage() {
     const h1 = document.createElement("h1");
-    h1.innerText = "Bravo ! Tu as terminer le quiz";
+    h1.innerText = "Bravo ! Tu as terminé le quiz";
     const p = document.createElement("p");
-    p.innerText = `Tu as eu ${score} sur ${Questions.length} point !`;
+    p.innerText = `Tu as eu ${score} sur ${Questions.length} points !`;
     app.appendChild(h1);
     app.appendChild(p);
+
+    const retryButton = getRetryButton();
+    retryButton.addEventListener("click", retryQuiz);
+    app.appendChild(retryButton);
   }
 
   function submit() {
     const selectedAnswer = app.querySelector('input[name="answer"]:checked');
+    if (!selectedAnswer) {
+      alert("Veuillez sélectionner une réponse avant de soumettre.");
+      return;
+    }
 
     disableAllAnswers();
 
     const value = selectedAnswer.value;
-
     const question = Questions[currentQuestion];
-
     const isCorrect = question.correct === value;
 
     if (isCorrect) {
@@ -80,7 +84,6 @@ function startQuiz(event) {
 
   function createAnswers(answers) {
     const answersDiv = document.createElement("div");
-
     answersDiv.classList.add("answers");
 
     for (const answer of answers) {
@@ -89,6 +92,12 @@ function startQuiz(event) {
     }
     return answersDiv;
   }
+
+  function retryQuiz() {
+    currentQuestion = 0;
+    score = 0;
+    startQuiz(event);
+  }
 }
 
 function getTitleElement(text) {
@@ -96,6 +105,7 @@ function getTitleElement(text) {
   title.innerText = text;
   return title;
 }
+
 function formatId(text) {
   return text.replaceAll(" ", "-").replaceAll('"', "'").toLowerCase();
 }
@@ -116,18 +126,22 @@ function getAnswerElement(text) {
 }
 
 function getSubmitButton() {
-  const submiteButton = document.createElement("button");
-  submiteButton.innerText = "submit";
+  const submitButton = document.createElement("button");
+  submitButton.innerText = "Submit";
+  return submitButton;
+}
 
-  return submiteButton;
+function getRetryButton() {
+  const retryButton = document.createElement("button");
+  retryButton.innerText = "Recommencer le quiz";
+  return retryButton;
 }
 
 function showFeedback(isCorrect, correct, answer) {
   const correctAnswerId = formatId(correct);
   const correctElement = document.querySelector(
-    `label[for ="${correctAnswerId}"]`
+    `label[for="${correctAnswerId}"]`
   );
-
   const selectedAnswerId = formatId(answer);
   const selectedElement = document.querySelector(
     `label[for="${selectedAnswerId}"]`
@@ -135,12 +149,12 @@ function showFeedback(isCorrect, correct, answer) {
   selectedElement.classList.add("correct");
   correctElement.classList.add(isCorrect ? "correct" : "incorrect");
 }
+
 function getFeedbackMessage(isCorrect, correct) {
   const paragraph = document.createElement("p");
   paragraph.innerText = isCorrect
-    ? "Bravo tu as eu la bonne réponse"
-    : `Désolé la bonne reéponse était ${correct}`;
-
+    ? "Bravo, tu as eu la bonne réponse"
+    : `Désolé, la bonne réponse était ${correct}`;
   return paragraph;
 }
 
@@ -156,7 +170,7 @@ function displayNextQuestionButton(callback) {
 
   app.querySelector("button").remove();
 
-  const getButtonText = () => `Next (${remainingTimeout / 1000}s`;
+  const getButtonText = () => `Next (${remainingTimeout / 1000}s)`;
 
   const nextButton = document.createElement("button");
   nextButton.innerText = getButtonText();
@@ -181,9 +195,9 @@ function displayNextQuestionButton(callback) {
     handleNextQuestion();
   });
 }
+
 function disableAllAnswers() {
   const radioInputs = document.querySelectorAll('input[type="radio"]');
-
   for (const radio of radioInputs) {
     radio.disabled = true;
   }
